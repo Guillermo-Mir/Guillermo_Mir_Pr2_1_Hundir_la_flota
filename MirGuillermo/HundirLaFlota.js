@@ -1,57 +1,103 @@
 
-const hundirLaFlotaJSON = 
-`[{
+const barcosJSON = 
+`[
     { "name": "Portaaviones", "size": 5 },
     { "name": "Acorazado", "size": 4 },
     { "name": "Crucero", "size": 3 },
     { "name": "Submarino", "size": 3 },
     { "name": "Destructor", "size": 2 }
-}]`
-//let arrayBarcos = JSON.parse(hundirLaFlotaJSON);
+]`
 
+let arrayBarcos = JSON.parse(barcosJSON);
+console.log(arrayBarcos)
 
 class Tablero{
-    constructor(celdas, barcos){
+    constructor(celdas){
         this.celdas = celdas
-        this.barcos = barcos
-
+        this.barcos = arrayBarcos
+        this.tablero = this.crearTableroVacio()
+        this.colocarBarcos()
     }
 
-    crearTableroVacio() {
-        let tablero = []
-        for (let i = 0; i < 10; i++) {
-          let nuevaFila = new Array(10)
-          nuevaFila.fill(this.celdas)
-          tablero.push(nuevaFila)
-        }
-        return tablero
+    colocarBarcos(){
+      for (let barco of this.barcos) {
+          let colocado = false;
+
+          while (!colocado) {
+              let x = Math.floor(Math.random() * 10);
+              let y = Math.floor(Math.random() * 10);
+              let direccion = Math.random() < 0.5 ? 'H' : 'V';
+
+              if (this.verificarEspacio(x, y, barco.size, direccion)) {
+                  this.ubicarBarco(x, y, barco.size, direccion, barco.name);
+                  colocado = true;
+              }
+          }
       }
-      
-      
+    }
+    verificarEspacio(x, y, size, direccion) {
+        if (direccion === 'H') {
+            if (y + size > 10) return false;
+            for (let i = 0; i < size; i++) {
+                if (this.tablero[x][y + i].estadoCelda !== 'agua') return false;
+            }
+        } else {
+            if (x + size > 10) return false;
+            for (let i = 0; i < size; i++) {
+                if (this.tablero[x + i][y].estadoCelda !== 'agua') return false;
+            }
+        }
+        return true;
+    }
+
+    ubicarBarco(x, y, size, direccion, nombre) {
+        for (let i = 0; i < size; i++) {
+            if (direccion === 'H') {
+                this.tablero[x][y + i].estadoCelda = 'barco';
+                this.tablero[x][y + i].nombreBarco = nombre;
+            } else {
+                this.tablero[x + i][y].estadoCelda = 'barco';
+                this.tablero[x + i][y].nombreBarco = nombre;
+            }
+        }
+    }
+
+      crearTableroVacio() {
+        let tableroVacio = [];
+        for (let x = 0; x < 10; x++) {
+          let fila = [];
+          for (let y = 0; y < 10; y++) {
+            fila.push(new Celda('agua', false, x, y, null));
+          }
+          tableroVacio.push(fila);
+        }
+        return tableroVacio;
+      }
+                
 }
-
-
+ 
 
 class Barco{
-    constructor(nombre, tamanyo, posicion, tocadas){
+    constructor(nombre, tamanyo, posicion){
         this.nombre = nombre
         this.tamanyo = tamanyo
         this.posicion = posicion
-        this.tocadas = tocadas
+        this.tocado = 0
         this.hundidio = false
     }
 }
 
 class Celda{
-    constructor(estadoTablero, estadoBarco,nombreBarco){
-        this.estadoTablero = estadoTablero //array de celdas
-        this.estadoBarco = estadoBarco //array de barcos
+    constructor(estadoCelda, estadoBarco, x, y, nombreBarco){
+        this.estadoCelda = estadoCelda
+        this.estadoBarco = estadoBarco
+        this.x = x
+        this.y = y
         this.nombreBarco = nombreBarco
-
     }
 
 }
- 
+ /*
     function cambiarEstilosGeneral(Celda, Tablero){
         Celda.style.color = 'blue'
         Celda.style.backgroundColor = '##64B6D6'
@@ -67,5 +113,7 @@ class Celda{
     }
 
 
+*/
 
-
+  const juego = new Tablero();
+  console.log(juego.tablero); 
