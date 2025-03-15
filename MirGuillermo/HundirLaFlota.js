@@ -19,32 +19,46 @@ class Tablero{
         this.colocarBarcos()
     }
 
-    colocarBarcos(){
-      for (let barco of this.barcos) {
-          let colocado = false;
+    colocarBarcos() {
+        for (let barco of this.barcos) {
+            let colocado = false;
 
-          while (!colocado) {
-              let x = Math.floor(Math.random() * 10);
-              let y = Math.floor(Math.random() * 10);
-              let direccion = Math.random() < 0.5 ? 'H' : 'V';
-
-              if (this.verificarEspacio(x, y, barco.size, direccion)) {
-                  this.ubicarBarco(x, y, barco.size, direccion, barco.name);
-                  colocado = true;
-              }
-          }
-      }
+            while (!colocado) {
+                let x = Math.floor(Math.random() * 10);
+                let y = Math.floor(Math.random() * 10);
+                let direccion;
+                if (Math.random() < 0.5) {
+                    direccion = 'horizontal';
+                } else {
+                    direccion = 'vertical';
+                }
+                
+                if (this.verificarEspacio(x, y, barco.size, direccion)) {
+                    this.ubicarBarco(x, y, barco.size, direccion, barco.name);
+                    colocado = true;
+                }
+            }
+        }
     }
+
     verificarEspacio(x, y, size, direccion) {
-        if (direccion === 'H') {
-            if (y + size > 10) return false;
+        if (direccion === 'horizontal') {
+            if (y + size > 10) {
+                return false;
+            }
             for (let i = 0; i < size; i++) {
-                if (this.tablero[x][y + i].estadoCelda !== 'agua') return false;
+                if (this.tablero[x][y + i].estadoCelda !== 'agua') {
+                    return false;
+                }
             }
         } else {
-            if (x + size > 10) return false;
+            if (x + size > 10) {
+                return false;
+            }
             for (let i = 0; i < size; i++) {
-                if (this.tablero[x + i][y].estadoCelda !== 'agua') return false;
+                if (this.tablero[x + i][y].estadoCelda !== 'agua') {
+                    return false;
+                }
             }
         }
         return true;
@@ -52,15 +66,17 @@ class Tablero{
 
     ubicarBarco(x, y, size, direccion, nombre) {
         for (let i = 0; i < size; i++) {
-            if (direccion === 'H') {
+            if (direccion === 'horizontal') {
                 this.tablero[x][y + i].estadoCelda = 'barco';
-                this.tablero[x][y + i].nombreBarco = nombre;
+                this.tablero[x][y + i].nombreBarco = nombre;;
             } else {
                 this.tablero[x + i][y].estadoCelda = 'barco';
                 this.tablero[x + i][y].nombreBarco = nombre;
             }
         }
     }
+
+   
 
       crearTableroVacio() {
         let tableroVacio = [];
@@ -73,6 +89,34 @@ class Tablero{
         }
         return tableroVacio;
       }
+
+      mostrarTablero() {
+        const contenedor = document.getElementById("contenedor");
+        contenedor.innerHTML = "";
+        const tabla = document.createElement("table");
+        
+
+        for (let x = 0; x < 10; x++) {
+            let fila = document.createElement("tr");
+            for (let y = 0; y < 10; y++) {
+                let celda = document.createElement("td");
+                celda.style.width = "30px";
+                celda.style.height = "30px";
+                celda.style.border = "1px solid black";
+                celda.style.textAlign = "center";
+                
+                if (this.tablero[x][y].estadoCelda === "barco") {
+                    celda.style.backgroundColor = "#868B91";
+                    celda.innerText = this.tablero[x][y].nombreBarco[0];
+                } else {
+                    celda.style.backgroundColor = "#59A4D9";
+                }
+                fila.appendChild(celda);
+            }
+            tabla.appendChild(fila);
+        }
+        contenedor.appendChild(tabla);
+    }
                 
 }
  
@@ -97,23 +141,7 @@ class Celda{
     }
 
 }
- /*
-    function cambiarEstilosGeneral(Celda, Tablero){
-        Celda.style.color = 'blue'
-        Celda.style.backgroundColor = '##64B6D6'
-        Celda.style.height = '50px'
-        Celda.style.width = '50px'
-        Celda.style.fontSize = '45px'
-        Celda.style.textAlign = 'center'
-        Celda.style.margin = '3px'
-        Tablero.style.display = 'grid'
-        Tablero.style.gridTemplateColumns = 'auto auto auto auto auto auto auto'
-        Tablero.style.grid = '3'
-        Tablero.style.width = '100px'
-    }
-
-
-*/
-
+ 
   const juego = new Tablero();
   console.log(juego.tablero); 
+  juego.mostrarTablero();
