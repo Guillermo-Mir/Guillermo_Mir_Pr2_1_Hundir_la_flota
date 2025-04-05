@@ -10,47 +10,54 @@ const barcosJSON =
 let arrayBarcos = JSON.parse(barcosJSON);
 console.log(arrayBarcos);
 
-let barcoSeleccionado = null; // Para saber qué barco está seleccionado
-let direccionBarco = "H"; // Dirección inicial del barco (horizontal)
+let barcoSeleccionado = null;
+let direccionBarco = "H"; // "H"orizontal o "V"ertical
+let barcosColocados = [];
 
-// Seleccionar barco al hacer clic en los botones
 function seleccionarBarco(barcoName, barcoSize) {
     barcoSeleccionado = { nombre: barcoName, tamaño: barcoSize };
 }
 
-// Asocia los botones de los barcos
+// Asociar botones
 document.getElementById("portaaviones").addEventListener("click", () => seleccionarBarco("Portaaviones", 5));
 document.getElementById("acorazado").addEventListener("click", () => seleccionarBarco("Acorazado", 4));
 document.getElementById("crucero").addEventListener("click", () => seleccionarBarco("Crucero", 3));
 document.getElementById("submarino").addEventListener("click", () => seleccionarBarco("Submarino", 3));
 document.getElementById("destructor").addEventListener("click", () => seleccionarBarco("Destructor", 2));
 
-// Cambiar la dirección con las teclas V y H
-document.addEventListener("keydown", (event) => {
-    if (event.key === "v" || event.key === "V") {
-        direccionBarco = "V"; // Cambiar a vertical
-    } else if (event.key === "h" || event.key === "H") {
-        direccionBarco = "H"; // Cambiar a horizontal
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "r" || event.key === "R") {
+        if (direccionBarco === "H") {
+            direccionBarco = "V";
+        } else {
+            direccionBarco = "H";
+        }
+        console.log("Dirección del barco ahora es:", direccionBarco); //poder ver la posicion por consola 
     }
 });
 
-// Colocar el barco en el tablero
 function colocarBarcoEnTablero(x, y) {
-    if (!barcoSeleccionado) return; // Si no hay barco seleccionado, no hacer nada
+    if (!barcoSeleccionado) return;
 
     const barco = barcoSeleccionado;
-    const tableroUsuario = new Tablero(false); // Usamos el tablero vacío
 
-    // Verificar que se puede colocar el barco en esa posición con la dirección seleccionada
+    if (barcosColocados.includes(barco.nombre)) {
+        alert("Ya has colocado el " + barco.nombre);
+        return;
+    }
+
     if (tableroUsuario.verificarEspacio(x, y, barco.tamaño, direccionBarco)) {
         tableroUsuario.ubicarBarco(x, y, barco.tamaño, direccionBarco, barco.nombre);
-        tableroUsuario.mostrarTablero("contenedor2"); // Actualiza el tablero visual
+        tableroUsuario.mostrarTablero("contenedor2");
+        barcosColocados.push(barco.nombre);
+        barcoSeleccionado = null;
     } else {
         alert("No se puede colocar el barco en esta posición.");
     }
 }
 
-// Escuchar clics en el tablero para colocar barcos
+// Escuchar clics en el tablero del usuario
 const contenedorUsuario = document.getElementById("contenedor2");
 contenedorUsuario.addEventListener("click", (event) => {
     if (event.target.tagName === "TD") {
@@ -60,7 +67,9 @@ contenedorUsuario.addEventListener("click", (event) => {
     }
 });
 
-// Definición de las clases necesarias para el tablero y las celdas
+// -------------------------
+// Clases Tablero y Celda
+// -------------------------
 
 class Tablero {
     constructor(colocarBarcos = false) { 
@@ -79,7 +88,8 @@ class Tablero {
             while (!colocado) {
                 let x = Math.floor(Math.random() * 10);
                 let y = Math.floor(Math.random() * 10);
-                let direccion = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+                let direccion = Math.random() < 0.5 ? 'H' : 'V';
+
                 if (this.verificarEspacio(x, y, barco.size, direccion)) {
                     this.ubicarBarco(x, y, barco.size, direccion, barco.name);
                     colocado = true;
@@ -89,23 +99,15 @@ class Tablero {
     }
 
     verificarEspacio(x, y, size, direccion) {
-        if (direccion === 'horizontal') {
-            if (y + size > 10) {
-                return false;
-            }
+        if (direccion === 'H') {
+            if (y + size > 10) return false;
             for (let i = 0; i < size; i++) {
-                if (this.tablero[x][y + i].estadoCelda !== 'agua') {
-                    return false;
-                }
+                if (this.tablero[x][y + i].estadoCelda !== 'agua') return false;
             }
         } else {
-            if (x + size > 10) {
-                return false;
-            }
+            if (x + size > 10) return false;
             for (let i = 0; i < size; i++) {
-                if (this.tablero[x + i][y].estadoCelda !== 'agua') {
-                    return false;
-                }
+                if (this.tablero[x + i][y].estadoCelda !== 'agua') return false;
             }
         }
         return true;
@@ -113,7 +115,7 @@ class Tablero {
 
     ubicarBarco(x, y, size, direccion, nombre) {
         for (let i = 0; i < size; i++) {
-            if (direccion === 'horizontal') {
+            if (direccion === 'H') {
                 this.tablero[x][y + i].estadoCelda = 'barco';
                 this.tablero[x][y + i].nombreBarco = nombre;
             } else {
@@ -170,16 +172,14 @@ class Celda {
     }
 }
 
-// Crear el tablero IA con barcos generados aleatoriamente
+// Crear los tableros una sola vez
 const tableroIA = new Tablero(true);
-
-// Crear el tablero del usuario sin barcos aleatorios
 const tableroUsuario = new Tablero(false);
 
 // Mostrar ambos tableros
 tableroIA.mostrarTablero("contenedor1");
 tableroUsuario.mostrarTablero("contenedor2");
 
-// Imprimir en consola los tableros para su análisis
+// Consola
 console.log("Tablero de la IA:", tableroIA.tablero);
 console.log("Tablero del Usuario:", tableroUsuario.tablero);
