@@ -7,26 +7,37 @@
     <script src="HundirLaFlota.js" defer></script>
     <link rel="stylesheet" href="HundirLaFlota.css">
 </head>
-    <body>
-        <h1>Hundir La Flota</h1>
-        <p>Pulsa la tecla R para rotar los barcos, usa la consola para ver la direccion en la que estas</p>
-        <div id="barcos">
-            <button id="portaaviones">Portaaviones (5)</button>
-            <button id="acorazado">Acorazado (4)</button>
-            <button id="crucero">Crucero (3)</button>
-            <button id="submarino">Submarino (3)</button>
-            <button id="destructor">Destructor (2)</button>
+<body>
+    <h1>Hundir La Flota</h1>
+    <p>Pulsa la tecla R para rotar los barcos, usa la consola para ver la dirección en la que estás</p>
+
+    <div id="barcos">
+        <button id="portaaviones">Portaaviones (5)</button>
+        <button id="acorazado">Acorazado (4)</button>
+        <button id="crucero">Crucero (3)</button>
+        <button id="submarino">Submarino (3)</button>
+        <button id="destructor">Destructor (2)</button>
+    </div>
+
+    <button id="jugar" disabled>Jugar</button>
+
+    <div id="disparo-form" style="display: none;">
+        <h3>Introduce coordenadas para disparar:</h3>
+        <input type="number" id="coordX" min="0" max="9" placeholder="X (0-9)">
+        <input type="number" id="coordY" min="0" max="9" placeholder="Y (0-9)">
+        <button id="btnDisparar">Disparar</button>
+        <p id="mensaje-disparo"></p>
+    </div>
+
+    <div id="tableros">
+        <div>
+            <h2>Tablero IA</h2>
+            <div id="contenedor1"></div>
         </div>
-    
-        <div id="tableros">
-            <div>
-                <h2>Tablero IA</h2>
-                <div id="contenedor1"></div>
-            </div>
-            <div>
-                <h2>Tablero Usuario</h2>
-                <div id="contenedor2"></div>
-            </div>
+        <div>
+            <h2>Tablero Usuario</h2>
+            <div id="contenedor2"></div>
         </div>
- </body>
+    </div>
+</body>
 </html>

@@ -25,15 +25,10 @@ document.getElementById("crucero").addEventListener("click", () => seleccionarBa
 document.getElementById("submarino").addEventListener("click", () => seleccionarBarco("Submarino", 3));
 document.getElementById("destructor").addEventListener("click", () => seleccionarBarco("Destructor", 2));
 
-
 document.addEventListener("keydown", function(event) {
     if (event.key === "r" || event.key === "R") {
-        if (direccionBarco === "H") {
-            direccionBarco = "V";
-        } else {
-            direccionBarco = "H";
-        }
-        console.log("Dirección del barco ahora es:", direccionBarco); //poder ver la posicion por consola 
+        direccionBarco = direccionBarco === "H" ? "V" : "H";
+        console.log("Dirección del barco ahora es:", direccionBarco);
     }
 });
 
@@ -52,31 +47,30 @@ function colocarBarcoEnTablero(x, y) {
         tableroUsuario.mostrarTablero("contenedor2");
         barcosColocados.push(barco.nombre);
         barcoSeleccionado = null;
+
+        if (barcosColocados.length === arrayBarcos.length) {
+            document.getElementById("jugar").disabled = false;
+        }
     } else {
         alert("No se puede colocar el barco en esta posición.");
     }
 }
 
-// Escuchar clics en el tablero del usuario
 const contenedorUsuario = document.getElementById("contenedor2");
 contenedorUsuario.addEventListener("click", (event) => {
     if (event.target.tagName === "TD") {
-        const x = event.target.parentNode.rowIndex;
-        const y = event.target.cellIndex;
-        colocarBarcoEnTablero(x, y);
+        const x = event.target.parentNode.rowIndex - 1;
+        const y = event.target.cellIndex - 1;
+        if (x >= 0 && y >= 0) colocarBarcoEnTablero(x, y);
     }
 });
 
-// -------------------------
-// Clases Tablero y Celda
-// -------------------------
-
 class Tablero {
-    constructor(colocarBarcos = false) { 
+    constructor(colocarBarcos = false) {
         this.tablero = this.crearTableroVacio();
         this.barcos = arrayBarcos;
 
-        if (colocarBarcos) { 
+        if (colocarBarcos) {
             this.colocarBarcos();
         }
     }
@@ -84,7 +78,6 @@ class Tablero {
     colocarBarcos() {
         for (let barco of this.barcos) {
             let colocado = false;
-
             while (!colocado) {
                 let x = Math.floor(Math.random() * 10);
                 let y = Math.floor(Math.random() * 10);
@@ -141,19 +134,40 @@ class Tablero {
         const contenedor = document.getElementById(contenedorID);
         contenedor.innerHTML = "";
         const tabla = document.createElement("table");
-    
+
+        // Cabecera con coordenadas Y (0-9)
+        let filaCabecera = document.createElement("tr");
+        filaCabecera.appendChild(document.createElement("th")); // espacio vacío esquina
+        for (let y = 0; y < 10; y++) {
+            let th = document.createElement("th");
+            th.innerText = y;
+            filaCabecera.appendChild(th);
+        }
+        tabla.appendChild(filaCabecera);
+
         for (let x = 0; x < 10; x++) {
             let fila = document.createElement("tr");
+            let th = document.createElement("th");
+            th.innerText = x; // Coordenadas X (0-9)
+            fila.appendChild(th);
             for (let y = 0; y < 10; y++) {
                 let celda = document.createElement("td");
-    
-                if (this.tablero[x][y].estadoCelda === "barco") {
-                    celda.classList.add("celda-barco");
-                    celda.innerText = this.tablero[x][y].nombreBarco[0];
+
+                if (contenedorID === "contenedor1") {
+                    if (this.tablero[x][y].estadoCelda === "agua") {
+                        celda.classList.add("celda-agua");
+                    } else {
+                        celda.classList.add("celda-agua");
+                    }
                 } else {
-                    celda.classList.add("celda-agua");
+                    if (this.tablero[x][y].estadoCelda === "barco") {
+                        celda.classList.add("celda-barco");
+                        celda.innerText = this.tablero[x][y].nombreBarco[0];
+                    } else {
+                        celda.classList.add("celda-agua");
+                    }
                 }
-    
+
                 fila.appendChild(celda);
             }
             tabla.appendChild(fila);
@@ -172,14 +186,77 @@ class Celda {
     }
 }
 
-// Crear los tableros una sola vez
 const tableroIA = new Tablero(true);
 const tableroUsuario = new Tablero(false);
 
-// Mostrar ambos tableros
 tableroIA.mostrarTablero("contenedor1");
 tableroUsuario.mostrarTablero("contenedor2");
 
-// Consola
 console.log("Tablero de la IA:", tableroIA.tablero);
 console.log("Tablero del Usuario:", tableroUsuario.tablero);
+
+// Botón Jugar y lógica de disparo
+const btnJugar = document.getElementById("jugar");
+const formDisparo = document.getElementById("disparo-form");
+const mensajeDisparo = document.getElementById("mensaje-disparo");
+const coordX = document.getElementById("coordX");
+const coordY = document.getElementById("coordY");
+const btnDisparar = document.getElementById("btnDisparar");
+
+btnJugar.addEventListener("click", () => {
+    formDisparo.style.display = "block";
+    mensajeDisparo.innerText = "¡Comienza la partida!";
+});
+
+btnDisparar.addEventListener("click", () => {
+    let x = parseInt(coordX.value);  // cordX es ahora la coordenada horizontal (X)
+    let y = parseInt(coordY.value);  // cordY es ahora la coordenada vertical (Y)
+    
+    if (isNaN(x) || isNaN(y) || x < 0 || x > 9 || y < 0 || y > 9) {
+        alert("Coordenadas inválidas");
+        return;
+    }
+
+    dispararJugador(x, y);  // Llamar a la función dispararJugador con las coordenadas correctas
+});
+
+function dispararJugador(x, y) {
+    let celda = tableroIA.tablero[y][x];  // Cambiar a y,x porque Y es vertical y X es horizontal
+    const contenedor = document.getElementById("contenedor1");
+    const celdaHTML = contenedor.querySelectorAll("tr")[y + 1].children[x + 1];  // Cambiar a y+1,x+1
+
+    if (celda.estadoCelda === "agua") {
+        celdaHTML.classList.add("celda-agua-impacto");  // Marcar agua
+        mensajeDisparo.innerText = "¡Agua! Turno de la IA.";
+        setTimeout(turnoIA, 1000);
+    } else if (celda.estadoCelda === "barco") {
+        celda.estadoCelda = "tocado";  // Marcar como tocado
+        celdaHTML.classList.add("celda-tocado");  // Resaltar el impacto
+        mensajeDisparo.innerText = "¡Tocado! Puedes volver a disparar.";
+    } else if (celda.estadoCelda === "tocado") {
+        mensajeDisparo.innerText = "Ya has disparado aquí.";  // Si ya se disparó aquí
+    }
+}
+
+function turnoIA() {
+    let disparado = false;
+    while (!disparado) {
+        let x = Math.floor(Math.random() * 10);  // Generar coordenadas aleatorias
+        let y = Math.floor(Math.random() * 10);
+        let celda = tableroUsuario.tablero[y][x];  // Cambiar a y,x para reflejar la correcta asignación de coordenadas
+
+        const contenedor = document.getElementById("contenedor2");
+        const celdaHTML = contenedor.querySelectorAll("tr")[y + 1].children[x + 1];  // Cambiar a y+1,x+1
+
+        if (celda.estadoCelda === "agua") {
+            celda.estadoCelda = "falloIA";  // Marcar fallo
+            celdaHTML.classList.add("celda-ataque-ia");  // Marcar como agua
+            mensajeDisparo.innerText = "IA: Agua. Tu turno.";
+            disparado = true;
+        } else if (celda.estadoCelda === "barco") {
+            celda.estadoCelda = "tocadoIA";  // Marcar como tocado por IA
+            celdaHTML.classList.add("celda-hundido");  // Marcar visualmente como tocado por IA
+            mensajeDisparo.innerText = "IA: ¡Tocado! IA vuelve a disparar.";
+        }
+    }
+}

@@ -52,3 +52,24 @@ td {
 .celda-barco {
     background-color: #868B91;
 }
+
+.celda-oculta {
+    background-color: #ccc;
+}
+
+.celda-agua-impacto {
+    background-color: #f0f0f0;
+}
+
+.celda-tocado {
+    background-color: #ffcc00;
+}
+
+.celda-hundido {
+    background-color: #ff0000;
+}
+
+.celda-ataque-ia {
+    background-color: #000;
+    color: white;
+}
