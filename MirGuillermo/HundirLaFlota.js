@@ -435,9 +435,13 @@ function restaurarPartida(partida) {
 
 
 // Función para guardar partida actual en la API
+// Función para guardar partida actual en la API
 async function guardarPartida(nombreJugador) {
     const id = prompt("Escribe un ID para tu partida (puede ser letras y números):");
-    if (!id) { alert("Debes ingresar un ID para guardar la partida."); return; }
+    if (!id) { 
+        alert("Debes ingresar un ID para guardar la partida."); 
+        return; 
+    }
     
     // Creamos la partida
     const partida = {
@@ -455,8 +459,13 @@ async function guardarPartida(nombreJugador) {
             headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify(partida)
         });
+
+        if (!respuesta.ok) {
+            throw new Error("Error al guardar la partida");
+        }
+
         const resultado = await respuesta.json();
-        alert(resultado.mensaje);
+        alert(`Partida guardada exitosamente con ID: ${resultado.id}`);
     } catch (error) {
         console.error('Error guardando la partida:', error);
         alert('Error al guardar la partida.');
