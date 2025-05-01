@@ -174,6 +174,14 @@ class Tablero {
         }
         contenedor.appendChild(tabla);
     }
+    serialize() {
+        return {
+          tamaño: 10,
+          casillas: this.tablero.map(fila =>
+            fila.map(celda => celda.toJSON())
+          )
+        };
+    }
 }
 
 class Celda {
@@ -184,6 +192,15 @@ class Celda {
         this.y = y;
         this.nombreBarco = nombreBarco;
     }
+    toJSON() {
+        return {
+          x: this.x,
+          y: this.y,
+          estadoCelda: this.estadoCelda,
+          nombreBarco: this.nombreBarco || "",
+        };
+      }
+    
 }
 
 const tableroIA = new Tablero(true);
@@ -298,3 +315,92 @@ function finalizarPartida() {
         }
     }, 500); // Espera medio segundo para mostrar el mensaje de victoria primero
 }
+async function cargarPartida() {
+    const id = prompt("Escribe el ID de la partida que quieres cargar:");
+
+    if (!id) {
+        alert("Debes ingresar un ID para cargar una partida.");
+        return;
+    }
+
+    try {
+        const respuesta = await fetch(`http://localhost:3000/partidas/cargar/${id}`);
+        if (!respuesta.ok) {
+            throw new Error('No se encontró la partida');
+        }
+
+        const partida = await respuesta.json();
+
+        // Restaurar datos
+        restaurarPartida(partida);
+
+        alert(`Partida de ${partida.nombre} cargada exitosamente.`);
+    } catch (error) {
+        console.error('Error cargando la partida:', error);
+        alert('Error al cargar la partida.');
+    }
+}
+
+
+async function guardarPartida(nombreJugador) {
+    const id = prompt("Escribe un ID para tu partida (puede ser letras y números):");
+
+    if (!id) {
+        alert("Debes ingresar un ID para guardar la partida.");
+        return;
+    }
+
+    const partida = {
+        id: id,
+        nombre: nombreJugador,
+        tableroUsuario: tableroUsuario.serialize(),
+        tableroIA: tableroIA.serialize(),
+        barcosColocados: barcosColocados,
+        direccionBarco: direccionBarco
+    };
+
+    try {
+        const respuesta = await fetch('http://localhost:3000/partidas/guardar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(partida)
+        });
+
+        const resultado = await respuesta.json();
+        alert(resultado.mensaje);
+    } catch (error) {
+        console.error('Error guardando la partida:', error);
+        alert('Error al guardar la partida.');
+    }
+}
+function restaurarPartida(partida) {
+    barcosColocados = partida.barcosColocados;
+    direccionBarco = partida.direccionBarco;
+
+    // Reconstruir tableroUsuario
+    tableroUsuario.tablero = partida.tableroUsuario.casillas.map(fila =>
+        fila.map(celda => new Celda(celda.estadoCelda, false, celda.x, celda.y, celda.nombreBarco))
+    );
+
+    // Reconstruir tableroIA
+    tableroIA.tablero = partida.tableroIA.casillas.map(fila =>
+        fila.map(celda => new Celda(celda.estadoCelda, false, celda.x, celda.y, celda.nombreBarco))
+    );
+
+    tableroUsuario.mostrarTablero("contenedor2");
+    tableroIA.mostrarTablero("contenedor1");
+
+    document.getElementById("jugar").disabled = barcosColocados.length !== arrayBarcos.length;
+    formDisparo.style.display = "block";
+}
+
+document.getElementById("btnGuardar").addEventListener("click", () => {
+    const nombre = prompt("¿Cómo te llamas?");
+    if (nombre) guardarPartida(nombre);
+});
+
+document.getElementById("btnCargar").addEventListener("click", () => {
+    cargarPartida();
+});
