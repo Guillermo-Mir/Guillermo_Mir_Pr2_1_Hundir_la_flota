@@ -353,33 +353,107 @@ function finalizarPartida() {
 async function cargarPartida() {
     const id = prompt("Escribe el ID de la partida que quieres cargar:");
     if (!id) { alert("Debes ingresar un ID para cargar una partida."); return; }
+    
     try {
-        const respuesta = await fetch(`http://localhost:3000/partidas/cargar/${id}`);
+        const respuesta = await fetch(`http://localhost:3000/partidas/${id}`);
         if (!respuesta.ok) throw new Error('No se encontró la partida');
         const partida = await respuesta.json();
-        restaurarPartida(partida); // Restauramos estado
-        alert(`Partida de ${partida.nombre} cargada exitosamente.`);
+        restaurarPartida(partida); // Restauramos el estado de la partida
+        alert(`Partida de ${partida.jugador} cargada exitosamente.`);
     } catch (error) {
         console.error('Error cargando la partida:', error);
         alert('Error al cargar la partida.');
     }
 }
+function restaurarPartida(partida) {
+    // 1) Restaurar lista de barcos colocados y dirección
+    barcosColocados = Array.isArray(partida.barcosColocados)
+        ? partida.barcosColocados
+        : [];
+    direccionBarco = partida.direccionBarco || 'H';
+
+    // 2) Parsear los tableros si vienen como string
+    const dataJugador = typeof partida.tableroJugador === 'string'
+        ? JSON.parse(partida.tableroJugador)
+        : partida.tableroJugador;
+    const dataIA = typeof partida.tableroIA === 'string'
+        ? JSON.parse(partida.tableroIA)
+        : partida.tableroIA;
+
+    // 3) Helper para determinar el estado real de la celda
+    const getEstado = (cell) => {
+        // Si en tu JSON usas "ocupada": true/false, lo convertimos a 'barco' o 'agua'
+        if (cell.estadoCelda) return cell.estadoCelda;
+        return cell.ocupada ? 'barco' : 'agua';
+    };
+
+    // 4) Reconstruir matriz de celdas del usuario
+    if (dataJugador && Array.isArray(dataJugador.casillas)) {
+        tableroUsuario.tablero = dataJugador.casillas.map(fila =>
+            fila.map(celda =>
+                new Celda(
+                    getEstado(celda),
+                    false,
+                    celda.x,
+                    celda.y,
+                    celda.nombreBarco || ''
+                )
+            )
+        );
+    } else {
+        console.error('Formato inválido de tableroJugador:', dataJugador);
+    }
+
+    // 5) Reconstruir matriz de celdas de la IA
+    if (dataIA && Array.isArray(dataIA.casillas)) {
+        tableroIA.tablero = dataIA.casillas.map(fila =>
+            fila.map(celda =>
+                new Celda(
+                    getEstado(celda),
+                    false,
+                    celda.x,
+                    celda.y,
+                    celda.nombreBarco || ''
+                )
+            )
+        );
+    } else {
+        console.error('Formato inválido de tableroIA:', dataIA);
+    }
+
+    // 6) Redibujar ambos tableros
+    tableroUsuario.mostrarTablero('contenedor2');
+    tableroIA.mostrarTablero('contenedor1');
+
+    // 7) Habilitar/deshabilitar botón Jugar
+    document.getElementById('jugar').disabled =
+        barcosColocados.length !== arrayBarcos.length;
+
+    // 8) Mostrar formulario de disparo
+    formDisparo.style.display = 'block';
+}
+
 
 // Función para guardar partida actual en la API
 async function guardarPartida(nombreJugador) {
     const id = prompt("Escribe un ID para tu partida (puede ser letras y números):");
     if (!id) { alert("Debes ingresar un ID para guardar la partida."); return; }
+    
+    // Creamos la partida
     const partida = {
         id: id,
-        nombre: nombreJugador,
-        tableroUsuario: tableroUsuario.serialize(),
+        jugador: nombreJugador,  // Asegúrate de que el jugador tiene un nombre
+        tableroJugador: tableroUsuario.serialize(),
         tableroIA: tableroIA.serialize(),
         barcosColocados: barcosColocados,
         direccionBarco: direccionBarco
     };
+    
     try {
-        const respuesta = await fetch('http://localhost:3000/partidas/guardar', {
-            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(partida)
+        const respuesta = await fetch('http://localhost:3000/partidas/', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify(partida)
         });
         const resultado = await respuesta.json();
         alert(resultado.mensaje);
@@ -389,28 +463,6 @@ async function guardarPartida(nombreJugador) {
     }
 }
 
-// Función para restaurar el estado de la partida en el cliente
-function restaurarPartida(partida) {
-    barcosColocados = partida.barcosColocados;    // Restaurar lista de barcos colocados
-    direccionBarco = partida.direccionBarco;      // Restaurar dirección actual
-
-    // Reconstruir matriz de celdas del usuario
-    tableroUsuario.tablero = partida.tableroUsuario.casillas.map(fila =>
-        fila.map(celda => new Celda(celda.estadoCelda, false, celda.x, celda.y, celda.nombreBarco))
-    );
-    // Reconstruir matriz de celdas de la IA
-    tableroIA.tablero = partida.tableroIA.casillas.map(fila =>
-        fila.map(celda => new Celda(celda.estadoCelda, false, celda.x, celda.y, celda.nombreBarco))
-    );
-
-    // Redibujar ambos tableros
-    tableroUsuario.mostrarTablero("contenedor2");
-    tableroIA.mostrarTablero("contenedor1");
-
-    // Ajustar botón Jugar y formulario según estado de colocación
-    document.getElementById("jugar").disabled = barcosColocados.length !== arrayBarcos.length;
-    formDisparo.style.display = "block";
-}
 
 // Asociar eventos a botones de guardar y cargar partida
 document.getElementById("btnGuardar").addEventListener("click", () => {
