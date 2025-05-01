@@ -1,3 +1,4 @@
+// Definimos los barcos disponibles en el juego como un JSON
 const barcosJSON = 
 `[
     { "name": "Portaaviones", "size": 5 },
@@ -7,47 +8,59 @@ const barcosJSON =
     { "name": "Destructor", "size": 2 }
 ]`;
 
+// Convertimos el JSON de barcos a un array de objetos JavaScript
 let arrayBarcos = JSON.parse(barcosJSON);
-console.log(arrayBarcos);
+console.log(arrayBarcos); // Mostramos en consola el array resultante
 
-let barcoSeleccionado = null;
-let direccionBarco = "H"; // "H"orizontal o "V"ertical
-let barcosColocados = [];
+// Variables globales para controlar selección y estado de los barcos
+let barcoSeleccionado = null;           // Barco que el jugador ha elegido para colocar
+let direccionBarco = "H";             // Dirección inicial: "H"=horizontal, "V"=vertical
+let barcosColocados = [];               // Nombres de barcos ya colocados en el tablero
 
+// Función para seleccionar un barco al hacer clic en su botón
 function seleccionarBarco(barcoName, barcoSize) {
+    // Guardamos el nombre y tamaño del barco seleccionado
     barcoSeleccionado = { nombre: barcoName, tamaño: barcoSize };
 }
 
-// Asociar botones
+// Asociamos cada botón de barco a la función seleccionarBarco
 document.getElementById("portaaviones").addEventListener("click", () => seleccionarBarco("Portaaviones", 5));
 document.getElementById("acorazado").addEventListener("click", () => seleccionarBarco("Acorazado", 4));
 document.getElementById("crucero").addEventListener("click", () => seleccionarBarco("Crucero", 3));
 document.getElementById("submarino").addEventListener("click", () => seleccionarBarco("Submarino", 3));
 document.getElementById("destructor").addEventListener("click", () => seleccionarBarco("Destructor", 2));
 
+// Permitir rotar la dirección del barco presionando la tecla "R"
 document.addEventListener("keydown", function(event) {
     if (event.key === "r" || event.key === "R") {
+        // Alternamos entre horizontal y vertical
         direccionBarco = direccionBarco === "H" ? "V" : "H";
         console.log("Dirección del barco ahora es:", direccionBarco);
     }
 });
 
+// Función para colocar el barco seleccionado en el tablero del usuario
 function colocarBarcoEnTablero(x, y) {
-    if (!barcoSeleccionado) return;
+    if (!barcoSeleccionado) return; // Si no hay barco seleccionado, no hacemos nada
 
-    const barco = barcoSeleccionado;
+    const barco = barcoSeleccionado; // Objeto { nombre, tamaño }
 
+    // Prevenir colocar el mismo barco dos veces
     if (barcosColocados.includes(barco.nombre)) {
         alert("Ya has colocado el " + barco.nombre);
         return;
     }
 
+    // Verificamos si el espacio está libre y dentro del tablero
     if (tableroUsuario.verificarEspacio(x, y, barco.tamaño, direccionBarco)) {
+        // Ubicamos el barco en la matriz de celdas
         tableroUsuario.ubicarBarco(x, y, barco.tamaño, direccionBarco, barco.nombre);
+        // Redibujamos el tablero del usuario en pantalla
         tableroUsuario.mostrarTablero("contenedor2");
-        barcosColocados.push(barco.nombre);
-        barcoSeleccionado = null;
+        barcosColocados.push(barco.nombre); // Añadimos a la lista de barcos colocados
+        barcoSeleccionado = null; // Deseleccionamos el barco
 
+        // Si ya hemos colocado todos, habilitamos el botón "Jugar"
         if (barcosColocados.length === arrayBarcos.length) {
             document.getElementById("jugar").disabled = false;
         }
@@ -56,34 +69,40 @@ function colocarBarcoEnTablero(x, y) {
     }
 }
 
+// Escucha clicks sobre cada celda del tablero del usuario
 const contenedorUsuario = document.getElementById("contenedor2");
 contenedorUsuario.addEventListener("click", (event) => {
     if (event.target.tagName === "TD") {
+        // Calculamos coordenadas basadas en el índice de fila y columna
         const x = event.target.parentNode.rowIndex - 1;
         const y = event.target.cellIndex - 1;
         if (x >= 0 && y >= 0) colocarBarcoEnTablero(x, y);
     }
 });
 
+// Clase que representa un tablero de 10x10
 class Tablero {
     constructor(colocarBarcos = false) {
-        this.tablero = this.crearTableroVacio();
-        this.barcos = arrayBarcos;
+        this.tablero = this.crearTableroVacio(); // Matriz 10x10 de objetos Celda
+        this.barcos = arrayBarcos;               // Referencia a arrayBarcos
 
         if (colocarBarcos) {
-            this.colocarBarcos();
+            this.colocarBarcos();               // Sólo para IA: coloca barcos aleatoriamente
         }
     }
 
+    // Coloca todos los barcos en posiciones aleatorias sin superponer
     colocarBarcos() {
         for (let barco of this.barcos) {
             let colocado = false;
             while (!colocado) {
+                // Generar coordenadas y dirección al azar
                 let x = Math.floor(Math.random() * 10);
                 let y = Math.floor(Math.random() * 10);
                 let direccion = Math.random() < 0.5 ? 'H' : 'V';
 
                 if (this.verificarEspacio(x, y, barco.size, direccion)) {
+                    // Si cabe, lo ubicamos y salimos del bucle
                     this.ubicarBarco(x, y, barco.size, direccion, barco.name);
                     colocado = true;
                 }
@@ -91,26 +110,28 @@ class Tablero {
         }
     }
 
+    // Verifica que una posición esté libre para un barco de tamaño dado
     verificarEspacio(x, y, size, direccion) {
         if (direccion === 'H') {
-            if (y + size > 10) return false;
+            if (y + size > 10) return false; // Excede columnas
             for (let i = 0; i < size; i++) {
                 if (this.tablero[x][y + i].estadoCelda !== 'agua') return false;
             }
         } else {
-            if (x + size > 10) return false;
+            if (x + size > 10) return false; // Excede filas
             for (let i = 0; i < size; i++) {
                 if (this.tablero[x + i][y].estadoCelda !== 'agua') return false;
             }
         }
-        return true;
+        return true; // Espacio válido
     }
 
+    // Marca en la matriz las celdas ocupadas por el barco
     ubicarBarco(x, y, size, direccion, nombre) {
         for (let i = 0; i < size; i++) {
             if (direccion === 'H') {
-                this.tablero[x][y + i].estadoCelda = 'barco';
-                this.tablero[x][y + i].nombreBarco = nombre;
+                this.tablero[x][y + i].estadoCelda = 'barco';     // Cambiamos estado a 'barco'
+                this.tablero[x][y + i].nombreBarco = nombre;       // Almacenamos el nombre
             } else {
                 this.tablero[x + i][y].estadoCelda = 'barco';
                 this.tablero[x + i][y].nombreBarco = nombre;
@@ -118,6 +139,7 @@ class Tablero {
         }
     }
 
+    // Genera una matriz 10x10 de celdas con estado inicial 'agua'
     crearTableroVacio() {
         let tableroVacio = [];
         for (let x = 0; x < 10; x++) {
@@ -130,14 +152,15 @@ class Tablero {
         return tableroVacio;
     }
 
-    mostrarTablero(contenedorID){
+    // Dibuja el tablero en un contenedor HTML indicado por su ID
+    mostrarTablero(contenedorID) {
         const contenedor = document.getElementById(contenedorID);
-        contenedor.innerHTML = "";
+        contenedor.innerHTML = "";                   // Limpiar contenido previo
         const tabla = document.createElement("table");
 
-        // Cabecera con coordenadas Y (0-9)
+        // Cabecera de coordenadas de columnas (0 a 9)
         let filaCabecera = document.createElement("tr");
-        filaCabecera.appendChild(document.createElement("th")); // espacio vacío esquina
+        filaCabecera.appendChild(document.createElement("th")); // Celda vacía esquina
         for (let y = 0; y < 10; y++) {
             let th = document.createElement("th");
             th.innerText = y;
@@ -145,74 +168,79 @@ class Tablero {
         }
         tabla.appendChild(filaCabecera);
 
+        // Filas y celdas del tablero
         for (let x = 0; x < 10; x++) {
             let fila = document.createElement("tr");
             let th = document.createElement("th");
-            th.innerText = x; // Coordenadas X (0-9)
+            th.innerText = x;     // Coordenada de fila
             fila.appendChild(th);
             for (let y = 0; y < 10; y++) {
                 let celda = document.createElement("td");
 
                 if (contenedorID === "contenedor1") {
-                    if (this.tablero[x][y].estadoCelda === "agua") {
-                        celda.classList.add("celda-agua");
-                    } else {
-                        celda.classList.add("celda-agua");
-                    }
+                    // Tablero IA siempre muestra solo agua inicialmente
+                    celda.classList.add("celda-agua");
                 } else {
+                    // Tablero Usuario: si hay barco, lo pintamos
                     if (this.tablero[x][y].estadoCelda === "barco") {
                         celda.classList.add("celda-barco");
-                        celda.innerText = this.tablero[x][y].nombreBarco[0];
+                        celda.innerText = this.tablero[x][y].nombreBarco[0]; // Inicial
                     } else {
                         celda.classList.add("celda-agua");
                     }
                 }
-
                 fila.appendChild(celda);
             }
             tabla.appendChild(fila);
         }
         contenedor.appendChild(tabla);
     }
+
+    // Serializa el estado del tablero para enviarlo al servidor
     serialize() {
         return {
-          tamaño: 10,
-          casillas: this.tablero.map(fila =>
-            fila.map(celda => celda.toJSON())
-          )
+            tamaño: 10,
+            casillas: this.tablero.map(fila =>
+                fila.map(celda => celda.toJSON())
+            )
         };
     }
 }
 
+// Clase que representa una sola celda del tablero
 class Celda {
     constructor(estadoCelda, estadoBarco, x, y, nombreBarco) {
-        this.estadoCelda = estadoCelda;
-        this.estadoBarco = estadoBarco;
-        this.x = x;
-        this.y = y;
-        this.nombreBarco = nombreBarco;
+        this.estadoCelda = estadoCelda; // 'agua', 'barco', etc.
+        this.estadoBarco = estadoBarco; // Booleano si ha sido tocado
+        this.x = x;                      // Coordenada X
+        this.y = y;                      // Coordenada Y
+        this.nombreBarco = nombreBarco; // Nombre del barco en esa celda
     }
+    
+    // Devuelve un objeto JSON con los datos de la celda
     toJSON() {
         return {
-          x: this.x,
-          y: this.y,
-          estadoCelda: this.estadoCelda,
-          nombreBarco: this.nombreBarco || "",
+            x: this.x,
+            y: this.y,
+            estadoCelda: this.estadoCelda,
+            nombreBarco: this.nombreBarco || "",
         };
-      }
-    
+    }
 }
 
+// Crear instancias de los tableros: IA coloca barcos aleatorios, usuario vacío
 const tableroIA = new Tablero(true);
 const tableroUsuario = new Tablero(false);
 
+// Dibujar ambos tableros en pantalla
 tableroIA.mostrarTablero("contenedor1");
 tableroUsuario.mostrarTablero("contenedor2");
 
+// Mostrar en consola la estructura interna para debugging
 console.log("Tablero de la IA:", tableroIA.tablero);
 console.log("Tablero del Usuario:", tableroUsuario.tablero);
 
-// Botón Jugar y lógica de disparo
+// Elementos del DOM para controlar el juego (botón jugar, formulario disparo...)
 const btnJugar = document.getElementById("jugar");
 const formDisparo = document.getElementById("disparo-form");
 const mensajeDisparo = document.getElementById("mensaje-disparo");
@@ -220,46 +248,51 @@ const coordX = document.getElementById("coordX");
 const coordY = document.getElementById("coordY");
 const btnDisparar = document.getElementById("btnDisparar");
 
+// Al hacer click en "Jugar", mostramos el formulario de disparo
 btnJugar.addEventListener("click", () => {
     formDisparo.style.display = "block";
     mensajeDisparo.innerText = "¡Comienza la partida!";
 });
 
+// Al hacer click en "Disparar", leemos las coordenadas e intentamos disparar
 btnDisparar.addEventListener("click", () => {
-    let x = parseInt(coordX.value);  // cordX es ahora la coordenada horizontal (X)
-    let y = parseInt(coordY.value);  // cordY es ahora la coordenada vertical (Y)
+    let x = parseInt(coordX.value);  // Coordenada X (columna)
+    let y = parseInt(coordY.value);  // Coordenada Y (fila)
     
+    // Validar valores
     if (isNaN(x) || isNaN(y) || x < 0 || x > 9 || y < 0 || y > 9) {
         alert("Coordenadas inválidas");
         return;
     }
 
-    dispararJugador(x, y);  // Llamar a la función dispararJugador con las coordenadas correctas
+    dispararJugador(x, y);  // Llamada a la función de disparo
 });
 
+// Función que gestiona el disparo del jugador sobre el tablero IA
 function dispararJugador(x, y) {
-    let celda = tableroIA.tablero[y][x];  // y,x porque Y es fila y X es columna
+    let celda = tableroIA.tablero[y][x];  // Accedemos con [fila][columna]
     const contenedor = document.getElementById("contenedor1");
     const celdaHTML = contenedor.querySelectorAll("tr")[y + 1].children[x + 1];
 
     if (celda.estadoCelda === "agua") {
-        celdaHTML.classList.add("celda-agua-impacto");
+        celdaHTML.classList.add("celda-agua-impacto"); // Marcar agua
         mensajeDisparo.innerText = "¡Agua! Turno de la IA.";
-        setTimeout(turnoIA, 1000);
+        setTimeout(turnoIA, 1000); // Pasamos el turno a la IA
     } else if (celda.estadoCelda === "barco") {
-        celda.estadoCelda = "tocado";
+        celda.estadoCelda = "tocado";                 // Marcar tocado
         celdaHTML.classList.add("celda-tocado");
         mensajeDisparo.innerText = "¡Tocado! Puedes volver a disparar.";
 
+        // Verificamos si se acabaron todos los barcos de la IA
         if (verificarFinDePartida(tableroIA, "Jugador")) {
-            return; // Terminar si el jugador ganó
+            return;
         }
     } else if (celda.estadoCelda === "tocado") {
-        mensajeDisparo.innerText = "Ya has disparado aquí.";
+        mensajeDisparo.innerText = "Ya has disparado aquí."; // Mensaje si ya disparó
     }
 }
 
-
+// Turno de la IA: dispara hasta fallar, elige posiciones aleatorias
 function turnoIA() {
     let disparado = false;
     while (!disparado) {
@@ -271,28 +304,29 @@ function turnoIA() {
         const celdaHTML = contenedor.querySelectorAll("tr")[y + 1].children[x + 1];
 
         if (celda.estadoCelda === "agua") {
-            celda.estadoCelda = "falloIA";
+            celda.estadoCelda = "falloIA";             // Marcar fallo IA
             celdaHTML.classList.add("celda-ataque-ia");
             mensajeDisparo.innerText = "IA: Agua. Tu turno.";
             disparado = true;
         } else if (celda.estadoCelda === "barco") {
-            celda.estadoCelda = "tocadoIA";
+            celda.estadoCelda = "tocadoIA";            // Marcar tocado IA
             celdaHTML.classList.add("celda-hundido");
             mensajeDisparo.innerText = "IA: ¡Tocado! IA vuelve a disparar.";
 
+            // Verificar si la IA hundió todos tus barcos
             if (verificarFinDePartida(tableroUsuario, "IA")) {
-                return; // Terminar si la IA ganó
+                return;
             }
         }
     }
 }
 
-
+// Comprueba si un jugador ha hundido todos los barcos del contrario
 function verificarFinDePartida(tablero, jugador) {
     for (let fila of tablero.tablero) {
         for (let celda of fila) {
             if (celda.estadoCelda === "barco") {
-                return false; // Aún queda al menos un barco
+                return false;  // Queda al menos un barco intacto
             }
         }
     }
@@ -301,6 +335,7 @@ function verificarFinDePartida(tablero, jugador) {
     return true;
 }
 
+// Deshabilita controles y ofrece reiniciar la partida
 function finalizarPartida() {
     formDisparo.style.display = "none";
     btnJugar.disabled = true;
@@ -310,30 +345,19 @@ function finalizarPartida() {
 
     setTimeout(() => {
         const reiniciar = confirm("¿Quieres jugar otra vez?");
-        if (reiniciar) {
-            location.reload(); // Recarga la página para reiniciar todo
-        }
-    }, 500); // Espera medio segundo para mostrar el mensaje de victoria primero
+        if (reiniciar) location.reload();
+    }, 500);
 }
+
+// Función para cargar partida desde la API
 async function cargarPartida() {
     const id = prompt("Escribe el ID de la partida que quieres cargar:");
-
-    if (!id) {
-        alert("Debes ingresar un ID para cargar una partida.");
-        return;
-    }
-
+    if (!id) { alert("Debes ingresar un ID para cargar una partida."); return; }
     try {
         const respuesta = await fetch(`http://localhost:3000/partidas/cargar/${id}`);
-        if (!respuesta.ok) {
-            throw new Error('No se encontró la partida');
-        }
-
+        if (!respuesta.ok) throw new Error('No se encontró la partida');
         const partida = await respuesta.json();
-
-        // Restaurar datos
-        restaurarPartida(partida);
-
+        restaurarPartida(partida); // Restauramos estado
         alert(`Partida de ${partida.nombre} cargada exitosamente.`);
     } catch (error) {
         console.error('Error cargando la partida:', error);
@@ -341,15 +365,10 @@ async function cargarPartida() {
     }
 }
 
-
+// Función para guardar partida actual en la API
 async function guardarPartida(nombreJugador) {
     const id = prompt("Escribe un ID para tu partida (puede ser letras y números):");
-
-    if (!id) {
-        alert("Debes ingresar un ID para guardar la partida.");
-        return;
-    }
-
+    if (!id) { alert("Debes ingresar un ID para guardar la partida."); return; }
     const partida = {
         id: id,
         nombre: nombreJugador,
@@ -358,16 +377,10 @@ async function guardarPartida(nombreJugador) {
         barcosColocados: barcosColocados,
         direccionBarco: direccionBarco
     };
-
     try {
         const respuesta = await fetch('http://localhost:3000/partidas/guardar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(partida)
+            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(partida)
         });
-
         const resultado = await respuesta.json();
         alert(resultado.mensaje);
     } catch (error) {
@@ -375,27 +388,31 @@ async function guardarPartida(nombreJugador) {
         alert('Error al guardar la partida.');
     }
 }
-function restaurarPartida(partida) {
-    barcosColocados = partida.barcosColocados;
-    direccionBarco = partida.direccionBarco;
 
-    // Reconstruir tableroUsuario
+// Función para restaurar el estado de la partida en el cliente
+function restaurarPartida(partida) {
+    barcosColocados = partida.barcosColocados;    // Restaurar lista de barcos colocados
+    direccionBarco = partida.direccionBarco;      // Restaurar dirección actual
+
+    // Reconstruir matriz de celdas del usuario
     tableroUsuario.tablero = partida.tableroUsuario.casillas.map(fila =>
         fila.map(celda => new Celda(celda.estadoCelda, false, celda.x, celda.y, celda.nombreBarco))
     );
-
-    // Reconstruir tableroIA
+    // Reconstruir matriz de celdas de la IA
     tableroIA.tablero = partida.tableroIA.casillas.map(fila =>
         fila.map(celda => new Celda(celda.estadoCelda, false, celda.x, celda.y, celda.nombreBarco))
     );
 
+    // Redibujar ambos tableros
     tableroUsuario.mostrarTablero("contenedor2");
     tableroIA.mostrarTablero("contenedor1");
 
+    // Ajustar botón Jugar y formulario según estado de colocación
     document.getElementById("jugar").disabled = barcosColocados.length !== arrayBarcos.length;
     formDisparo.style.display = "block";
 }
 
+// Asociar eventos a botones de guardar y cargar partida
 document.getElementById("btnGuardar").addEventListener("click", () => {
     const nombre = prompt("¿Cómo te llamas?");
     if (nombre) guardarPartida(nombre);
