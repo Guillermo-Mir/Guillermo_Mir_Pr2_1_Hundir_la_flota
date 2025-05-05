@@ -315,7 +315,7 @@ function turnoIA() {
 
             // Verificar si la IA hundió todos tus barcos
             if (verificarFinDePartida(tableroUsuario, "IA")) {
-                return;
+                return;buzmxqh2k
             }
         }
     }
@@ -425,11 +425,7 @@ function restaurarPartida(partida) {
     tableroUsuario.mostrarTablero('contenedor2');
     tableroIA.mostrarTablero('contenedor1');
 
-    // 7) Habilitar/deshabilitar botón Jugar
-    document.getElementById('jugar').disabled =
-        barcosColocados.length !== arrayBarcos.length;
-
-    // 8) Mostrar formulario de disparo
+    // 7) Mostrar formulario de disparo
     formDisparo.style.display = 'block';
 }
 
@@ -437,15 +433,8 @@ function restaurarPartida(partida) {
 // Función para guardar partida actual en la API
 // Función para guardar partida actual en la API
 async function guardarPartida(nombreJugador) {
-    const id = prompt("Escribe un ID para tu partida (puede ser letras y números):");
-    if (!id) { 
-        alert("Debes ingresar un ID para guardar la partida."); 
-        return; 
-    }
-    
-    // Creamos la partida
     const partida = {
-        id: id,
+        id: generateId(),
         jugador: nombreJugador,  // Asegúrate de que el jugador tiene un nombre
         tableroJugador: tableroUsuario.serialize(),
         tableroIA: tableroIA.serialize(),

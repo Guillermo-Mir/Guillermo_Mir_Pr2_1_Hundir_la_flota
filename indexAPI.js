@@ -1,10 +1,6 @@
-// Generador simple de ID si no tienes otro
-function generateId() {
-    return Math.random().toString(36).substr(2, 9);
-  }
-  
-  async function guardarPartida(nombreJugador) {
-    const payload = {
+
+    async function guardarPartida(nombreJugador) {
+    const partida = {
       id:     generateId(),
       jugador: nombreJugador,
       tableroJugador: tableroUsuario.serialize(),
@@ -14,7 +10,7 @@ function generateId() {
     const resp = await fetch("http://localhost:3000/partidas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(partida)
     });
   
     if (!resp.ok) {
@@ -24,6 +20,23 @@ function generateId() {
   
     const data = await resp.json();
     alert(`Partida guardada con ID: ${data.id}`);
+    try {
+      const response = await fetch("http://localhost:3000/partidas", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify(partida)
+      });
+
+      if (!response.ok) throw new Error("Error al guardar la partida");
+
+      const data = await response.json();
+      console.log("Partida guardada con éxito:", data);
+      return data.id; // ID de la partida
+  } catch (err) {
+      console.error("Error:", err);
+  }
   }
   
   async function cargarPartida() {
@@ -54,4 +67,5 @@ function generateId() {
       });
     });
   }
+    
   
