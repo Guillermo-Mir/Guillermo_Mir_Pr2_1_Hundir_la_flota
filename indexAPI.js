@@ -22,6 +22,7 @@ function generarId() {
   
     const data = await resp.json();
     alert(`Partida guardada con ID: ${data.id}`);
+
     try {
       const response = await fetch("http://localhost:3000/partidas", {
           method: "POST",
