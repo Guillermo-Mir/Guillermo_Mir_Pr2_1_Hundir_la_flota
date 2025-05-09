@@ -375,22 +375,22 @@ function generarId() {
       alert(`Partida guardada con ID: ${data.id}`);
   
       try {
-        const response = await fetch("http://localhost:3000/partidas", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(partida)
-        });
-  
-        if (!response.ok) throw new Error("Error al guardar la partida");
-  
-        const data = await response.json();
-        console.log("Partida guardada con éxito:", data);
-        return data.id; // ID de la partida
-    } catch (err) {
-        console.error("Error:", err);
-    }
+            const response = await fetch("http://localhost:3000/partidas", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(partida)
+            });
+    
+            if (!response.ok) throw new Error("Error al guardar la partida");
+    
+            const data = await response.json();
+            console.log("Partida guardada con éxito:", data);
+            return data.id; // ID de la partida
+        } catch (err) {
+            console.error("Error:", err);
+        }
     }
     
     async function cargarPartida(id) {
@@ -399,6 +399,7 @@ function generarId() {
         if (!response.ok) throw new Error("No se encontró la partida");
   
         const data = await response.json();
+        alert("Partida cargada")
         console.log("Partida cargada:", data);
         return data;
     } catch (err) {
@@ -417,13 +418,13 @@ function generarId() {
     const partida = await cargarPartida(id); // <<<<< AQUI EL CAMBIO: poner "await"
   
     if (partida) {
-      recuperaTablerosApi(partida);
+      recuperaTableros(partida);
     } else {
       alert("No se pudo cargar la partida.");
     }
   });
   
-  function recuperaTablerosApi(partida) {
+  function recuperaTableros(partida) {
     // 1) Restaurar lista de barcos colocados y dirección
     barcosColocados = Array.isArray(partida.barcosColocados)
         ? partida.barcosColocados
@@ -458,6 +459,8 @@ function generarId() {
                 )
             )
         );
+        console.log('Tablero Usuario (partida cargada)');
+        console.log(tableroUsuario)
     } else {
         console.error('Formato inválido de tableroJugador:', dataJugador);
     }
@@ -475,6 +478,8 @@ function generarId() {
                 )
             )
         );
+        console.log('Tablero IA (partida cargada)');
+        console.log(tableroIA);
     } else {
         console.error('Formato inválido de tableroIA:', dataIA);
     }
