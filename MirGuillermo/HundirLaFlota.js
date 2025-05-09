@@ -321,20 +321,6 @@ function turnoIA() {
     }
 }
 
-// Comprueba si un jugador ha hundido todos los barcos del contrario
-function verificarFinDePartida(tablero, jugador) {
-    for (let fila of tablero.tablero) {
-        for (let celda of fila) {
-            if (celda.estadoCelda === "barco") {
-                return false;  // Queda al menos un barco intacto
-            }
-        }
-    }
-    mensajeDisparo.innerText = `¡${jugador} ha ganado la partida! 🎉`;
-    finalizarPartida();
-    return true;
-}
-
 // Deshabilita controles y ofrece reiniciar la partida
 function finalizarPartida() {
     formDisparo.style.display = "none";
@@ -344,42 +330,26 @@ function finalizarPartida() {
     coordY.disabled = true;
 
     setTimeout(() => {
-        const reiniciar = confirm("¿Quieres jugar otra vez?");
+        const reiniciar = confirm("¿ La partida ha finalizado, quieres jugar otra vez?");
         if (reiniciar) location.reload();
     }, 500);
 }
 
-function generarId() {
-    return Math.random().toString(36).substr(2, 9);
-  }
-      async function guardarPartida(nombreJugador) {
+  
+      async function guardarPartida(nombreJugador, tableroJugador, tableroIA) {
       const partida = {
-        id:     generarId(),
         jugador: nombreJugador,
-        tableroJugador: tableroUsuario.serialize(),
-        tableroIA:      tableroIA.serialize()
+        tableroJugador: JSON.stringify(tableroJugador),
+        tableroIA:      JSON.stringify(tableroIA)
       };
     
-      const resp = await fetch("http://localhost:3000/partidas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(partida)
-      });
-    
-      if (!resp.ok) {
-        alert("Error guardando la partida");
-        return;
-      }
-    
-      const data = await resp.json();
-      alert(`Partida guardada con ID: ${data.id}`);
-  
       try {
             const response = await fetch("http://localhost:3000/partidas", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
+                
                 body: JSON.stringify(partida)
             });
     
@@ -410,7 +380,7 @@ function generarId() {
   // Asociar eventos a botones de guardar y cargar partida
   document.getElementById("btnGuardar").addEventListener("click", () => {
     const nombre = prompt("¿Cómo te llamas?");
-    if (nombre) guardarPartida(nombre);
+    guardarPartida(nombre, tableroUsuario, tableroIA);
   });
   
   document.getElementById("btnCargar").addEventListener("click", async () => { 
@@ -418,13 +388,13 @@ function generarId() {
     const partida = await cargarPartida(id); // <<<<< AQUI EL CAMBIO: poner "await"
   
     if (partida) {
-      recuperaTableros(partida);
+      recuperaTablerosApi(partida);
     } else {
       alert("No se pudo cargar la partida.");
     }
   });
   
-  function recuperaTableros(partida) {
+  function recuperaTablerosApi(partida) {
     // 1) Restaurar lista de barcos colocados y dirección
     barcosColocados = Array.isArray(partida.barcosColocados)
         ? partida.barcosColocados
