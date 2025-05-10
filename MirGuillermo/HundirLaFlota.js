@@ -320,6 +320,18 @@ function turnoIA() {
         }
     }
 }
+// Comprueba si un jugador ha hundido todos los barcos del contrario
+function verificarFinDePartida(tablero, jugador) {
+    for (let fila of tablero.tablero) {
+        for (let celda of fila) {
+            if (celda.estadoCelda === "barco") {
+                return false;  // Queda al menos un barco intacto
+            }
+        }
+    }
+    finalizarPartida();
+    return true;
+}
 
 // Deshabilita controles y ofrece reiniciar la partida
 function finalizarPartida() {
@@ -423,8 +435,9 @@ function finalizarPartida() {
                 new Celda(
                     getEstado(celda),
                     false,
-                    celda.x,
                     celda.y,
+                    celda.x,
+                    
                     celda.nombreBarco || ''
                 )
             )
@@ -442,8 +455,8 @@ function finalizarPartida() {
                 new Celda(
                     getEstado(celda),
                     false,
-                    celda.x,
                     celda.y,
+                    celda.x,
                     celda.nombreBarco || ''
                 )
             )
