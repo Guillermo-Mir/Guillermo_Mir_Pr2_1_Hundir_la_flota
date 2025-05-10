@@ -209,23 +209,24 @@ class Tablero {
 
 // Clase que representa una sola celda del tablero
 class Celda {
-    constructor(estadoCelda, estadoBarco, x, y, nombreBarco) {
+    constructor(estadoCelda, estadoBarco, y, x, nombreBarco) {
         this.estadoCelda = estadoCelda; // 'agua', 'barco', etc.
         this.estadoBarco = estadoBarco; // Booleano si ha sido tocado
-        this.x = x;                      // Coordenada X
-        this.y = y;                      // Coordenada Y
+        this.x = x;                      // Coordenada X 
+        this.y = y;                      // Coordenada Y 
         this.nombreBarco = nombreBarco; // Nombre del barco en esa celda
     }
     
     // Devuelve un objeto JSON con los datos de la celda
     toJSON() {
         return {
-            x: this.x,
-            y: this.y,
+            x: this.x, 
+            y: this.y, 
             estadoCelda: this.estadoCelda,
             nombreBarco: this.nombreBarco || "",
         };
     }
+        
 }
 
 // Crear instancias de los tableros: IA coloca barcos aleatorios, usuario vacío
@@ -315,7 +316,7 @@ function turnoIA() {
 
             // Verificar si la IA hundió todos tus barcos
             if (verificarFinDePartida(tableroUsuario, "IA")) {
-                return;buzmxqh2k
+                return;
             }
         }
     }
@@ -351,10 +352,10 @@ function finalizarPartida() {
       async function guardarPartida(nombreJugador, tableroJugador, tableroIA) {
       const partida = {
         jugador: nombreJugador,
-        tableroJugador: JSON.stringify(tableroJugador),
-        tableroIA:      JSON.stringify(tableroIA)
+        tableroJugador: JSON.stringify(tableroJugador.serialize()),
+        tableroIA:      JSON.stringify(tableroIA.serialize())
       };
-    
+                                                                                                    
       try {
             const response = await fetch("http://localhost:3000/partidas", {
                 method: "POST",
@@ -435,9 +436,8 @@ function finalizarPartida() {
                 new Celda(
                     getEstado(celda),
                     false,
-                    celda.y,
                     celda.x,
-                    
+                    celda.y,
                     celda.nombreBarco || ''
                 )
             )
@@ -455,8 +455,8 @@ function finalizarPartida() {
                 new Celda(
                     getEstado(celda),
                     false,
-                    celda.y,
                     celda.x,
+                    celda.y,
                     celda.nombreBarco || ''
                 )
             )
