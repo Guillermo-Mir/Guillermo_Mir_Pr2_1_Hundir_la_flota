@@ -1,5 +1,5 @@
 export class Celda {
-    constructor(estadoCelda, estadoBarco, x, y, nombreBarco) {
+    constructor(estadoCelda, estadoBarco, y, x, nombreBarco) {
         this.estadoCelda = estadoCelda;
         this.estadoBarco = estadoBarco;
         this.x = x;
@@ -9,8 +9,8 @@ export class Celda {
     
     toJSON() {
         return {
-            x: this.x, 
-            y: this.y, 
+            x: this.x,
+            y: this.y,
             estadoCelda: this.estadoCelda,
             nombreBarco: this.nombreBarco || "",
         };

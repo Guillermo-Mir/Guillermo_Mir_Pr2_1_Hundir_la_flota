@@ -210,7 +210,7 @@ class Tablero {
 
 // Clase que representa una sola celda del tablero
 class Celda {
-    constructor(estadoCelda, estadoBarco, y, x, nombreBarco) {
+    constructor(estadoCelda, estadoBarco, x, y, nombreBarco) {
         this.estadoCelda = estadoCelda; // 'agua', 'barco', etc.
         this.estadoBarco = estadoBarco; // Booleano si ha sido tocado
         this.x = x;                      // Coordenada X 
@@ -437,8 +437,8 @@ function finalizarPartida() {
                 new Celda(
                     getEstado(celda),
                     false,
-                    celda.x,
                     celda.y,
+                    celda.x,
                     celda.nombreBarco || ''
                 )
             )
@@ -456,8 +456,8 @@ function finalizarPartida() {
                 new Celda(
                     getEstado(celda),
                     false,
-                    celda.x,
                     celda.y,
+                    celda.x,
                     celda.nombreBarco || ''
                 )
             )
