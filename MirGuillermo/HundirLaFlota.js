@@ -1,3 +1,4 @@
+
 // Definimos los barcos disponibles en el juego como un JSON
 const barcosJSON = 
 `[
