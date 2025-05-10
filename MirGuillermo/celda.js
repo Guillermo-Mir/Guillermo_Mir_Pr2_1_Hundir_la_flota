@@ -1,5 +1,5 @@
 export class Celda {
-    constructor(estadoCelda, estadoBarco, y, x, nombreBarco) {
+    constructor(estadoCelda, estadoBarco, x, y, nombreBarco) {
         this.estadoCelda = estadoCelda;
         this.estadoBarco = estadoBarco;
         this.x = x;
