@@ -39,24 +39,33 @@ function mostrarTablero(contenedorID, tablero) {
         fila.appendChild(th);
         for (let y = 0; y < 10; y++) {
             let celda = document.createElement("td");
+            const estado = tablero[x][y].estadoCelda;
 
-            if (contenedorID === "contenedor1") {
+            // PINTADO ESPECIAL según estado
+            if (estado === "tocado") {
+                celda.classList.add("celda-tocado");
+            } else if (estado === "falloIA") {
+                celda.classList.add("celda-ataque-ia");
+            } else if (estado === "tocadoIA") {
+                celda.classList.add("celda-hundido");
+            } else if (contenedorID === "contenedor1") {
                 celda.classList.add("celda-agua");
             } else {
-                if (tablero[x][y].estadoCelda === "barco") {
+                if (estado === "barco") {
                     celda.classList.add("celda-barco");
                     celda.innerText = tablero[x][y].nombreBarco[0];
                 } else {
                     celda.classList.add("celda-agua");
                 }
             }
+
             fila.appendChild(celda);
         }
         tabla.appendChild(fila);
     }
     contenedor.appendChild(tabla);
 }
-        
+    
 // Asociamos cada botón de barco a la función seleccionarBarco
 document.getElementById("portaaviones").addEventListener("click", () => seleccionarBarco("Portaaviones", 5));
 document.getElementById("acorazado").addEventListener("click", () => seleccionarBarco("Acorazado", 4));
