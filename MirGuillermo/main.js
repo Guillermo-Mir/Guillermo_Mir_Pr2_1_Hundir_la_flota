@@ -46,10 +46,12 @@ function mostrarTablero(contenedorID, tablero) {
                 celda.classList.add("celda-tocado");
             } else if (estado === "falloIA") {
                 celda.classList.add("celda-ataque-ia");
+            } else if(estado === "falloUS"){
+                celda.classList.add("celda-agua-impacto")    
             } else if (estado === "tocadoIA") {
                 celda.classList.add("celda-hundido");
             } else if (contenedorID === "contenedor1") {
-                celda.classList.add("celda-agua");
+                celda.classList.add("celda-agua");                 
             } else {
                 if (estado === "barco") {
                     celda.classList.add("celda-barco");
@@ -171,6 +173,7 @@ function dispararJugador(x, y) {
     const celdaHTML = contenedor.querySelectorAll("tr")[y + 1].children[x + 1];
 
     if (celda.estadoCelda === "agua") {
+        celda.estadoCelda = "falloUS";  // Marcar fallo US
         celdaHTML.classList.add("celda-agua-impacto"); // Marcar agua
         mensajeDisparo.innerText = "¡Agua! Turno de la IA.";
         setTimeout(turnoIA, 1000); // Pasamos el turno a la IA
@@ -183,7 +186,7 @@ function dispararJugador(x, y) {
         if (verificarFinDePartida(tableroIA, "Jugador")) {
             return;
         }
-    } else if (celda.estadoCelda === "tocado") {
+    } else if (celda.estadoCelda === "tocado" || celda.estadoCelda === "falloUS") {
         mensajeDisparo.innerText = "Ya has disparado aquí."; // Mensaje si ya disparó
     }
 }
