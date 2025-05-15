@@ -81,6 +81,8 @@ document.addEventListener("keydown", function(event) {
         // Alternamos entre horizontal y vertical
         direccionBarco = direccionBarco === "H" ? "V" : "H";
         console.log("Dirección del barco ahora es:", direccionBarco);
+document.getElementById("direccionBarcoInfo").textContent = `Dirección del barco ahora es: ${direccionBarco}`;
+
     }
 });
 
